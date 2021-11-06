@@ -1,5 +1,6 @@
 package com.example.shoppinglist.presentation
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.shoppinglist.data.ShopListRepositoryImpl
@@ -13,7 +14,13 @@ class ShopItemViewModel : ViewModel() {
     private val addShopItemUseCase = AddShopItemUseCase(repository)
     private val editShopItemUseCase = EditShopItemUseCase(repository)
 
-    var errorInputName = MutableLiveData<Boolean>()
+    private var _errorInputName = MutableLiveData<Boolean>()
+    val errorInputName: LiveData<Boolean>
+    get() = _errorInputName
+
+    private var _errorInputCount = MutableLiveData<Boolean>()
+    val errorInputCount: LiveData<Boolean>
+    get() = _errorInputCount
 
     fun getShopItem(shopItemId: Int) {
         val item = getShopItemUseCase.getShopItem(shopItemId)
@@ -23,7 +30,7 @@ class ShopItemViewModel : ViewModel() {
         val name = parseName(inputName)
         val count = parseCount(inputCount)
         val fieldsValid = validateInput(name, count)
-        if(fieldsValid){
+        if (fieldsValid) {
             val shopItem = ShopItem(name, count, true)
             addShopItemUseCase.addShopItem(shopItem)
         }
@@ -35,7 +42,7 @@ class ShopItemViewModel : ViewModel() {
         val name = parseName(inputName)
         val count = parseCount(inputCount)
         val fieldsValid = validateInput(name, count)
-        if(fieldsValid){
+        if (fieldsValid) {
             val shopItem = ShopItem(name, count, true)
             addShopItemUseCase.addShopItem(shopItem)
             editShopItemUseCase.editShopItem(shopItem)
@@ -57,11 +64,20 @@ class ShopItemViewModel : ViewModel() {
     private fun validateInput(name: String, count: Int): Boolean {
         var result = true
         if (name.isBlank()) {
+            _errorInputName.value = true
             result = false
         }
         if (count <= 0) {
-            result = false
+            _errorInputCount.value = true
         }
         return result
+    }
+
+    private fun resetErrorInputName() {
+        _errorInputName.value = false
+    }
+
+    private fun resetErrorCount(){
+        _errorInputCount.value = false
     }
 }
