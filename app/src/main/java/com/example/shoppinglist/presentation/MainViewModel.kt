@@ -1,21 +1,25 @@
 package com.example.shoppinglist.presentation
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.*
 import com.example.shoppinglist.data.ShopListRepositoryImpl
 import com.example.shoppinglist.domain.DeliteShopItemUseCase
 import com.example.shoppinglist.domain.EditShopItemUseCase
 import com.example.shoppinglist.domain.GetShopListUseCase
 import com.example.shoppinglist.domain.ShopItem
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 
-class MainViewModel : ViewModel() {
-    private val repository = ShopListRepositoryImpl
+class MainViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = ShopListRepositoryImpl(application)
 
-    private val getShopListUseCase = GetShopListUseCase(ShopListRepositoryImpl)
-    private val deliteShopItemUseCase = DeliteShopItemUseCase(ShopListRepositoryImpl)
-    private val editShopListUseCase = EditShopItemUseCase(ShopListRepositoryImpl)
+    private val getShopListUseCase = GetShopListUseCase(ShopListRepositoryImpl(application))
+    private val deliteShopItemUseCase = DeliteShopItemUseCase(ShopListRepositoryImpl(application))
+    private val editShopListUseCase = EditShopItemUseCase(ShopListRepositoryImpl(application))
+
 
     val shopList = getShopListUseCase.getShopList()
 
@@ -23,12 +27,20 @@ class MainViewModel : ViewModel() {
         val list = getShopListUseCase.getShopList()
     }
 
-    fun deliteShopItem(shopItem: ShopItem) {
-        deliteShopItemUseCase.deliteShopItem(shopItem)
+    fun deleteShopItem(shopItem: ShopItem) {
+        viewModelScope.launch {
+            deliteShopItemUseCase.deliteShopItem(shopItem)
+        }
     }
 
     fun changeEnableState(shopItem: ShopItem) {
-        val newItem = shopItem.copy(enabled = !shopItem.enabled)
-        editShopListUseCase.editShopItem(newItem)
+        viewModelScope.launch {
+            val newItem = shopItem.copy(enabled = !shopItem.enabled)
+            editShopListUseCase.editShopItem(newItem)
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
     }
 }

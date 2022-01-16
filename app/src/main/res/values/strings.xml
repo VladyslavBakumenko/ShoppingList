@@ -5,4 +5,5 @@
     <string name="save_btn">save</string>
     <string name="count">count</string>
     <string name="name">name</string>
+    <string name="name_hint">name</string>
 </resources>
